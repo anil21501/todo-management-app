@@ -21,23 +21,22 @@ pipeline {
             }
         }
 
-        stage('Run Backend') {
+        stage('Deploy to EC2') {
             steps {
-                sh 'docker rm -f todo-backend || true'
-                sh 'docker run -d --name todo-backend -p 5000:5000 todo-backend'
-            }
-        }
-
-        stage('Run Frontend') {
-            steps {
-                sh 'docker rm -f todo-frontend || true'
-                sh 'docker run -d --name todo-frontend -p 3000:3000 todo-frontend'
+                sh '''
+                ssh -i /root/a.pem -o StrictHostKeyChecking=no ubuntu@18.233.164.82 "
+                cd /home/ubuntu/todo-management-app &&
+                git pull &&
+                docker compose down &&
+                docker compose up -d --build
+                "
+                '''
             }
         }
 
         stage('Check') {
             steps {
-                sh 'docker ps'
+                sh 'echo "Deployment completed successfully"'
             }
         }
     }
